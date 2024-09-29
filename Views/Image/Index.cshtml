@@ -1,0 +1,128 @@
+﻿@model ImageViewModel
+
+
+<div class="container">
+    <form asp-action="ViewImages" method="post">
+        <div class="form-group">
+            <label for="DirectoryPath">Directory Path:</label>
+            <input type="text" name="DirectoryPath" class="form-control" placeholder="Enter directory path" />
+        </div>
+        <button type="submit" class="btn btn-primary">View Images</button>
+    </form>
+
+    @if (Model.Images != null && Model.Images.Any())
+    {
+        <br/>
+        @* <h3>Images in Folder: @Model.DirectoryPath</h3> *@
+        <br/>
+        @* <h3>Upload Images</h3> *@
+
+            <!-- Hidden form for uploading files -->
+        <form id="uploadForm" method="post" enctype="multipart/form-data" asp-action="UploadImages" asp-controller="Image">
+            <!-- Hidden folder path from the selected viewer input -->
+            <input type="hidden" id="folderPath" name="folder" value="@Model.DirectoryPath" />
+
+            <!-- Hidden file input, trigger via button -->
+            <input type="file" id="fileInput" name="images" style="display: none;" multiple accept=".jpg, .jpeg, .png, .gif, .bmp, .abr, .svg, .tiff, .webp" />
+
+            <!-- Upload button that opens file explorer -->
+            <button type="button" class="btn btn-primary" id="uploadButton">
+                Upload Images
+            </button>
+        </form>
+
+        <!-- Optional: success message -->
+        <div id="successMessage" style="display:none;">
+            <p class="text-success">Images uploaded successfully!</p>
+        </div>
+
+        <br/>
+
+        <div class="table-responsive mt-4">
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Image Path</th>
+                        <th>Image Preview</th>
+                        <th>Image Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var image in Model.Images)
+                    {
+                        <tr>
+                            <td>@image.FilePath</td>
+                            <td>
+                                <img src="@Url.Action("GetImage", "Image", new { filePath = image.FilePath })"
+                                     alt="@image.FileName" width="100"
+                                     class="img-thumbnail preview-image"
+                                     data-full="@Url.Action("GetImage", "Image", new { filePath = image.FilePath, fileName = image.FileName })" />
+                            </td>
+                            <td>@image.FileName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Modal for Full-Size Image Preview -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-labelledby="imagePreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imagePreviewModalLabel">Image Preview</h5>
+                @* <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button> *@
+            </div>
+            <div class="modal-body text-center">
+                <img id="fullImage" src="" alt="Full Preview" class="img-fluid" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="printImage()">Print</button>
+                <a id="downloadImage" href="#" class="btn btn-primary" download>Download</a>
+                @* <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> *@
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('uploadButton').addEventListener('click', function () {
+            // Trigger the hidden file input
+            document.getElementById('fileInput').click();
+        });
+
+        // When files are selected, submit the form automatically
+        document.getElementById('fileInput').addEventListener('change', function () {
+            var form = document.getElementById('uploadForm');
+
+            // Check if any files are selected
+            if (this.files.length > 0) {
+                form.submit();
+            }
+        });
+    </script>
+    <script>
+        // Handle image preview click
+        $(document).ready(function () {
+            $('.preview-image').click(function () {
+                var fullImageUrl = $(this).data('full');
+                $('#fullImage').attr('src', fullImageUrl);
+                $('#downloadImage').attr('href', fullImageUrl);
+                $('#imagePreviewModal').modal('show');
+            });
+        });
+
+        // Print the image
+        function printImage() {
+            var imageSrc = document.getElementById("fullImage").src;
+            var newWindow = window.open("", "_blank");
+            newWindow.document.write('<img src="' + imageSrc + '" onload="window.print();window.close();" />');
+            newWindow.document.close();
+        }
+    </script>
+}
