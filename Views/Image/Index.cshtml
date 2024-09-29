@@ -10,14 +10,16 @@
         <button type="submit" class="btn btn-primary">View Images</button>
     </form>
 
-    @if (Model.Images != null && Model.Images.Any())
+   
+
+    @if (!Model.Images.Any() && Model.ErrorMessage != "")
     {
-        <br/>
+        <br />
         @* <h3>Images in Folder: @Model.DirectoryPath</h3> *@
-        <br/>
+        <br />
         @* <h3>Upload Images</h3> *@
 
-            <!-- Hidden form for uploading files -->
+        <!-- Hidden form for uploading files -->
         <form id="uploadForm" method="post" enctype="multipart/form-data" asp-action="UploadImages" asp-controller="Image">
             <!-- Hidden folder path from the selected viewer input -->
             <input type="hidden" id="folderPath" name="folder" value="@Model.DirectoryPath" />
@@ -31,13 +33,32 @@
             </button>
         </form>
 
-        <!-- Optional: success message -->
-        <div id="successMessage" style="display:none;">
-            <p class="text-success">Images uploaded successfully!</p>
-        </div>
+        <br />
+        <h4 class="alert-warning text-center">@Model.ErrorMessage</h4>
 
-        <br/>
+    }
+    else if (Model.Images != null && Model.Images.Any())
+    {
+        <br />
+        @* <h3>Images in Folder: @Model.DirectoryPath</h3> *@
+        <br />
+        @* <h3>Upload Images</h3> *@
 
+        <!-- Hidden form for uploading files -->
+        <form id="uploadForm" method="post" enctype="multipart/form-data" asp-action="UploadImages" asp-controller="Image">
+            <!-- Hidden folder path from the selected viewer input -->
+            <input type="hidden" id="folderPath" name="folder" value="@Model.DirectoryPath" />
+
+            <!-- Hidden file input, trigger via button -->
+            <input type="file" id="fileInput" name="images" style="display: none;" multiple accept=".jpg, .jpeg, .png, .gif, .bmp, .abr, .svg, .tiff, .webp" />
+
+            <!-- Upload button that opens file explorer -->
+            <button type="button" class="btn btn-primary" id="uploadButton">
+                Upload Images
+            </button>
+        </form>
+
+        <br />
         <div class="table-responsive mt-4">
             <table class="table table-bordered table-striped">
                 <thead class="thead-dark">
@@ -74,7 +95,7 @@
             <div class="modal-header">
                 <h5 class="modal-title" id="imagePreviewModalLabel">Image Preview</h5>
                 @* <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <span aria-hidden="true">&times;</span>
                 </button> *@
             </div>
             <div class="modal-body text-center">

@@ -6,5 +6,6 @@ namespace ShoaaFileViewer.Models
     {
         public string DirectoryPath { get; set; }
         public List<ImageModel> Images { get; set; } = new List<ImageModel>();
+        public string ErrorMessage { get; set; } = "";
     }
 }

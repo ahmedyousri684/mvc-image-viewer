@@ -40,7 +40,8 @@ namespace ShoaaFileViewer.Controllers
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "Directory does not exist.");
+                Directory.CreateDirectory(model.DirectoryPath);
+                model.ErrorMessage = "There is no images in this Directory (" + model.DirectoryPath + "), Click Upload Images to upload some.";
             }
 
             return View("Index", model);
@@ -63,7 +64,8 @@ namespace ShoaaFileViewer.Controllers
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "Directory does not exist.");
+                Directory.CreateDirectory(model.DirectoryPath);
+                model.ErrorMessage = "There is no images in this Directory (" + model.DirectoryPath + "), Click Upload Images to upload some.";
             }
 
             return View("Index", model);
