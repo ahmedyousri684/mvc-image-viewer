@@ -1,0 +1,44 @@
+name: Deploy on Main Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the latest code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up .NET 8.0 SDK
+      - name: Set up .NET 8.0
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'  # Use .NET 8.0 SDK
+
+      # Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # Build the project
+      - name: Build project
+        run: dotnet build --configuration Release --no-restore
+
+      # Publish the project to a folder (this creates the deployment package)
+      - name: Publish project
+        run: dotnet publish --configuration Release --output ./publish
+
+      # Zip the published output
+      - name: Zip the deployment
+        run: zip -r deployment.zip ./publish
+
+      # Upload the zip as an artifact
+      - name: Upload deployment zip
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment
+          path: deployment.zip
