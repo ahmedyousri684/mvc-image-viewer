@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using ShoaaFileViewer.Models;
+using ShoaaFileViewer.Services;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Reflection;
 
 namespace ShoaaFileViewer.Controllers
@@ -22,8 +25,8 @@ namespace ShoaaFileViewer.Controllers
         public IActionResult Index(string folderName, string nationaId)
         {
             var baseDiirectory = _mySettings.BaseDirectory;
-                var pathName = baseDiirectory + "\\" + folderName + "\\" + nationaId;
-                var model = new ImageViewModel();
+            var pathName = baseDiirectory + "\\" + folderName + "\\" + nationaId;
+            var model = new ImageViewModel();
             model.DirectoryPath = pathName;
             if (Directory.Exists(model.DirectoryPath))
             {
@@ -76,7 +79,7 @@ namespace ShoaaFileViewer.Controllers
             if (System.IO.File.Exists(filePath))
             {
                 var image = System.IO.File.OpenRead(filePath);
-                return File(image, "application/x-photoshop",fileName);  // Adjust the content type as necessary
+                return File(image, "application/x-photoshop", fileName);  // Adjust the content type as necessary
             }
             return NotFound();
         }
@@ -111,25 +114,38 @@ namespace ShoaaFileViewer.Controllers
             // Allowed file extensions (including .abr for Adobe Brushes)
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".abr", ".svg", ".tiff", ".webp" };
 
-            foreach (var image in images)
+            foreach (var file in images)
             {
-                if (image.Length > 0)
+                if (file.Length > 0)
                 {
-                    var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+                    var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
                     // Validate extension
-                    if (!allowedExtensions.Contains(extension))
+                    if (allowedExtensions.Contains(extension))
                     {
-                        ModelState.AddModelError("images", "Invalid file format. Allowed formats: .jpg, .png, .gif, .bmp, .abr, .svg, .tiff, .webp.");
-                        return View();
+
+                        var filePath = Path.Combine(targetDirectory, file.FileName);
+
+                        // Save the image
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+                        //ModelState.AddModelError("images", "Invalid file format. Allowed formats: .jpg, .png, .gif, .bmp, .abr, .svg, .tiff, .webp.");
+                        //return View();
                     }
-
-                    var filePath = Path.Combine(targetDirectory, image.FileName);
-
-                    // Save the image
-                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    else if (extension == ".pdf")
                     {
-                        await image.CopyToAsync(stream);
+                        //var pdfPath = Path.Combine(targetDirectory);
+                        using (var stream = new MemoryStream())
+                        {
+                            await file.CopyToAsync(stream);
+                            stream.Position = 0;
+                            var converter = new PDFToImagesConverter();
+
+                            // Convert PDF to images
+                            converter.ConvertPdfToImages(stream,targetDirectory);
+                        }
                     }
                 }
             }
