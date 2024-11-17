@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using ShoaaFileViewer.Models;
 using ShoaaFileViewer.Services;
@@ -20,7 +21,7 @@ namespace ShoaaFileViewer.Controllers
         {
             return View(new ImageViewModel());
         }
-
+       
         [HttpGet("image/{folderName}/{nationaId}")]
         public IActionResult Index(string folderName, string nationaId)
         {
@@ -50,6 +51,7 @@ namespace ShoaaFileViewer.Controllers
             return View("Index", model);
         }
 
+       
         [HttpPost]
         public IActionResult ViewImages(ImageViewModel model)
         {
@@ -83,7 +85,7 @@ namespace ShoaaFileViewer.Controllers
             }
             return NotFound();
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPost]
         public async Task<IActionResult> UploadImages(string folder, List<IFormFile> images)
         {
